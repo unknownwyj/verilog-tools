@@ -12,6 +12,8 @@
         <a href="converter.html" class="active">Fixed-Point Converter</a>
         <a href="pe-calculator.html">PE Calculator (Hex)</a>
         <a href="pe-real.html">PE Calculator (Real)</a>
+        <a href="ieee754.html">IEEE 754 Float</a>
+        <a href="fp-calc.html">Fixed-Point Calc</a>
     </nav>
 
     <div class="container">
@@ -193,6 +195,44 @@
             document.getElementById('floatResult').style.display = 'block';
         }
 
+        // ---- localStorage ----
+        const STORAGE_KEY = 'converter_inputs';
+        function saveInputs() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                intBits: document.getElementById('intBits').value,
+                fracBits: document.getElementById('fracBits').value,
+                isSigned: document.getElementById('isSigned').checked,
+                fpBinary: document.getElementById('fpBinary').value,
+                fpHex: document.getElementById('fpHex').value,
+                floatValue: document.getElementById('floatValue').value
+            }));
+        }
+        function loadInputs() {
+            try {
+                const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                if (!data) return;
+                if (data.intBits) document.getElementById('intBits').value = data.intBits;
+                if (data.fracBits) document.getElementById('fracBits').value = data.fracBits;
+                if (data.isSigned !== undefined) document.getElementById('isSigned').checked = data.isSigned;
+                if (data.fpBinary) document.getElementById('fpBinary').value = data.fpBinary;
+                if (data.fpHex) document.getElementById('fpHex').value = data.fpHex;
+                if (data.floatValue) document.getElementById('floatValue').value = data.floatValue;
+                updateFormat();
+                if (data.fpBinary) fixedToFloat();
+                if (data.floatValue) floatToFixed();
+            } catch (e) {}
+        }
+        // Hook save into existing functions
+        const _origFixedToFloat = fixedToFloat;
+        fixedToFloat = function() { _origFixedToFloat(); saveInputs(); };
+        const _origHexToFixed = hexToFixed;
+        hexToFixed = function() { _origHexToFixed(); saveInputs(); };
+        const _origFloatToFixed = floatToFixed;
+        floatToFixed = function() { _origFloatToFixed(); saveInputs(); };
+        const _origUpdateFormat = updateFormat;
+        updateFormat = function() { _origUpdateFormat(); saveInputs(); };
+
+        loadInputs();
         updateFormat();
     </script>
 </body>

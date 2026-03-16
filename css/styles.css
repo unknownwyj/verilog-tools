@@ -12,7 +12,7 @@ body {
 }
 
 nav {
-    max-width: 900px;
+    max-width: 1200px;
     margin: 0 auto 20px;
     display: flex;
     gap: 10px;
@@ -40,7 +40,7 @@ nav a.active {
     background: white;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 900px;
+    max-width: 1200px;
     width: 100%;
     margin: 0 auto;
     padding: 40px;

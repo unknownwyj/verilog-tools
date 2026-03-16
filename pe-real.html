@@ -12,6 +12,8 @@
         <a href="converter.html">Fixed-Point Converter</a>
         <a href="pe-calculator.html">PE Calculator (Hex)</a>
         <a href="pe-real.html" class="active">PE Calculator (Real)</a>
+        <a href="ieee754.html">IEEE 754 Float</a>
+        <a href="fp-calc.html">Fixed-Point Calc</a>
     </nav>
 
     <div class="container">
@@ -142,6 +144,26 @@
 
             document.getElementById('realPeResult').style.display = 'block';
         }
+
+        // ---- localStorage ----
+        const STORAGE_KEY = 'pe_real_inputs';
+        const PE_FIELDS = ['real_xr0', 'real_xi0', 'real_xr1', 'real_xi1', 'real_cos', 'real_sin'];
+        function saveInputs() {
+            const data = {};
+            PE_FIELDS.forEach(id => data[id] = document.getElementById(id).value);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+        function loadInputs() {
+            try {
+                const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                if (!data) return;
+                PE_FIELDS.forEach(id => { if (data[id]) document.getElementById(id).value = data[id]; });
+                calculateRealPE();
+            } catch (e) {}
+        }
+        const _origCalc = calculateRealPE;
+        calculateRealPE = function() { _origCalc(); saveInputs(); };
+        loadInputs();
     </script>
 </body>
 </html>
