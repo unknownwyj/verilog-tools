@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PE Calculator (Real)</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="converter.html">Fixed-Point Converter</a>
+        <a href="pe-calculator.html">PE Calculator (Hex)</a>
+        <a href="pe-real.html" class="active">PE Calculator (Real)</a>
+    </nav>
+
+    <div class="container">
+        <h1>PE Calculator (Real Numbers)</h1>
+        <p class="subtitle">FFT Processing Element &mdash; butterfly &amp; twiddle rotation using decimal values</p>
+
+        <div class="converter-section">
+            <h3>Inputs</h3>
+            <div class="converter-grid">
+                <div class="input-group">
+                    <label for="real_xr0">X<sub>R0</sub> (Real):</label>
+                    <input type="text" id="real_xr0" placeholder="0.5" oninput="calculateRealPE()">
+                </div>
+                <div class="input-group">
+                    <label for="real_xi0">X<sub>I0</sub> (Real):</label>
+                    <input type="text" id="real_xi0" placeholder="0.25" oninput="calculateRealPE()">
+                </div>
+                <div class="input-group">
+                    <label for="real_xr1">X<sub>R1</sub> (Real):</label>
+                    <input type="text" id="real_xr1" placeholder="0.125" oninput="calculateRealPE()">
+                </div>
+                <div class="input-group">
+                    <label for="real_xi1">X<sub>I1</sub> (Real):</label>
+                    <input type="text" id="real_xi1" placeholder="0.0625" oninput="calculateRealPE()">
+                </div>
+                <div class="input-group">
+                    <label for="real_cos">cos(&alpha;):</label>
+                    <input type="text" id="real_cos" placeholder="0.707107" oninput="calculateRealPE()">
+                </div>
+                <div class="input-group">
+                    <label for="real_sin">sin(&alpha;):</label>
+                    <input type="text" id="real_sin" placeholder="0.707107" oninput="calculateRealPE()">
+                </div>
+            </div>
+            <button onclick="calculateRealPE()">Calculate PE Outputs</button>
+            <div id="realPeResult" style="display: none; margin-top: 20px;">
+                <h4 style="color: #495057; margin-bottom: 15px;">PE Output Results (Real Numbers)</h4>
+                <div style="background: #e8f5e9; padding: 20px; border-radius: 10px;">
+                    <div class="real-pe-grid">
+                        <div class="real-pe-card addition">
+                            <div class="card-title">Butterfly Addition (E)</div>
+                            <div class="card-body">
+                                Y<sub>R0</sub> = <span id="real_yr0" style="color: #1b5e20; font-weight: bold;"></span><br>
+                                Y<sub>I0</sub> = <span id="real_yi0" style="color: #1b5e20; font-weight: bold;"></span>
+                            </div>
+                        </div>
+                        <div class="real-pe-card subtraction">
+                            <div class="card-title">Butterfly Subtraction (F)</div>
+                            <div class="card-body">
+                                Z<sub>R</sub> = <span id="real_zr" style="color: #e65100; font-weight: bold;"></span><br>
+                                Z<sub>I</sub> = <span id="real_zi" style="color: #e65100; font-weight: bold;"></span>
+                            </div>
+                        </div>
+                        <div class="real-pe-card rotation">
+                            <div class="card-title">Rotation Output (J)</div>
+                            <div class="card-body">
+                                Y<sub>R1</sub> = <span id="real_yr1" style="color: #0d47a1; font-weight: bold;"></span><br>
+                                Y<sub>I1</sub> = <span id="real_yi1" style="color: #0d47a1; font-weight: bold;"></span>
+                            </div>
+                        </div>
+                        <div class="real-pe-card scaled">
+                            <div class="card-title">Rotation (with &divide;2 scaling)</div>
+                            <div class="card-body">
+                                Y<sub>R1</sub>/2 = <span id="real_yr1_half" style="color: #6a1b9a; font-weight: bold;"></span><br>
+                                Y<sub>I1</sub>/2 = <span id="real_yi1_half" style="color: #6a1b9a; font-weight: bold;"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding: 15px; background: #fff3e0; border-radius: 8px; font-size: 0.9em;">
+                        <strong>Formulas:</strong><br>
+                        &bull; Y<sub>R0</sub> = X<sub>R0</sub> + X<sub>R1</sub>, &ensp; Y<sub>I0</sub> = X<sub>I0</sub> + X<sub>I1</sub><br>
+                        &bull; Z<sub>R</sub> = X<sub>R0</sub> &minus; X<sub>R1</sub>, &ensp; Z<sub>I</sub> = X<sub>I0</sub> &minus; X<sub>I1</sub><br>
+                        &bull; Y<sub>R1</sub> = Z<sub>R</sub>&middot;cos(&alpha;) &minus; Z<sub>I</sub>&middot;sin(&alpha;)<br>
+                        &bull; Y<sub>I1</sub> = Z<sub>R</sub>&middot;sin(&alpha;) + Z<sub>I</sub>&middot;cos(&alpha;)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateRealPE() {
+            const xr0Str = document.getElementById('real_xr0').value.trim();
+            const xi0Str = document.getElementById('real_xi0').value.trim();
+            const xr1Str = document.getElementById('real_xr1').value.trim();
+            const xi1Str = document.getElementById('real_xi1').value.trim();
+            const cosStr = document.getElementById('real_cos').value.trim();
+            const sinStr = document.getElementById('real_sin').value.trim();
+
+            if (!xr0Str || !xi0Str || !xr1Str || !xi1Str || !cosStr || !sinStr) {
+                document.getElementById('realPeResult').style.display = 'none';
+                return;
+            }
+
+            const xr0 = parseFloat(xr0Str);
+            const xi0 = parseFloat(xi0Str);
+            const xr1 = parseFloat(xr1Str);
+            const xi1 = parseFloat(xi1Str);
+            const cosAlpha = parseFloat(cosStr);
+            const sinAlpha = parseFloat(sinStr);
+
+            const yr0 = xr0 + xr1;
+            const yi0 = xi0 + xi1;
+            const zr = xr0 - xr1;
+            const zi = xi0 - xi1;
+
+            const yr1 = zr * cosAlpha - zi * sinAlpha;
+            const yi1 = zr * sinAlpha + zi * cosAlpha;
+
+            const yr1_half = yr1 / 2;
+            const yi1_half = yi1 / 2;
+
+            function formatNum(val) {
+                if (Math.abs(val) < 0.0001 && val !== 0) {
+                    return val.toExponential(4);
+                }
+                return val.toFixed(6);
+            }
+
+            document.getElementById('real_yr0').textContent = formatNum(yr0);
+            document.getElementById('real_yi0').textContent = formatNum(yi0);
+            document.getElementById('real_zr').textContent = formatNum(zr);
+            document.getElementById('real_zi').textContent = formatNum(zi);
+            document.getElementById('real_yr1').textContent = formatNum(yr1);
+            document.getElementById('real_yi1').textContent = formatNum(yi1);
+            document.getElementById('real_yr1_half').textContent = formatNum(yr1_half);
+            document.getElementById('real_yi1_half').textContent = formatNum(yi1_half);
+
+            document.getElementById('realPeResult').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

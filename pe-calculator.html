@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PE Calculator (Hex)</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="converter.html">Fixed-Point Converter</a>
+        <a href="pe-calculator.html" class="active">PE Calculator (Hex)</a>
+        <a href="pe-real.html">PE Calculator (Real)</a>
+    </nav>
+
+    <div class="container">
+        <h1>PE Calculator (Hex)</h1>
+        <p class="subtitle">FFT Processing Element &mdash; butterfly &amp; twiddle rotation using Q1.7 hex values</p>
+
+        <div class="converter-section">
+            <h3>Inputs</h3>
+            <div class="converter-grid">
+                <div class="input-group">
+                    <label for="xr0">X<sub>R0</sub> (Hex):</label>
+                    <input type="text" id="xr0" placeholder="10" oninput="calculatePE()">
+                </div>
+                <div class="input-group">
+                    <label for="xi0">X<sub>I0</sub> (Hex):</label>
+                    <input type="text" id="xi0" placeholder="08" oninput="calculatePE()">
+                </div>
+                <div class="input-group">
+                    <label for="xr1">X<sub>R1</sub> (Hex):</label>
+                    <input type="text" id="xr1" placeholder="08" oninput="calculatePE()">
+                </div>
+                <div class="input-group">
+                    <label for="xi1">X<sub>I1</sub> (Hex):</label>
+                    <input type="text" id="xi1" placeholder="04" oninput="calculatePE()">
+                </div>
+                <div class="input-group">
+                    <label for="cosAlpha">cos(&alpha;) (Hex):</label>
+                    <input type="text" id="cosAlpha" placeholder="7F" oninput="calculatePE()">
+                </div>
+                <div class="input-group">
+                    <label for="sinAlpha">sin(&alpha;) (Hex):</label>
+                    <input type="text" id="sinAlpha" placeholder="00" oninput="calculatePE()">
+                </div>
+            </div>
+            <button onclick="calculatePE()">Calculate PE Outputs</button>
+            <div id="peResult" style="display: none; margin-top: 20px;">
+                <h4 style="color: #495057; margin-bottom: 15px;">PE Output Results</h4>
+                <div class="pe-table-wrap">
+                    <table class="pe-table">
+                        <thead>
+                            <tr>
+                                <th>TIME</th>
+                                <th>R<sub>IN</sub></th>
+                                <th>I<sub>IN</sub></th>
+                                <th>S</th>
+                                <th>E</th>
+                                <th>F</th>
+                                <th>J</th>
+                                <th>K</th>
+                                <th>R<sub>OUT</sub></th>
+                                <th>I<sub>OUT</sub></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0</td>
+                                <td id="calc_r0"></td>
+                                <td id="calc_i0"></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td id="calc_r1"></td>
+                                <td id="calc_i1"></td>
+                                <td style="font-weight: bold;">0</td>
+                                <td id="calc_yr0"></td>
+                                <td id="calc_zr"></td>
+                                <td></td>
+                                <td id="calc_k1"></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td></td>
+                                <td></td>
+                                <td style="font-weight: bold;">1</td>
+                                <td id="calc_yi0"></td>
+                                <td id="calc_zi"></td>
+                                <td id="calc_yr1"></td>
+                                <td id="calc_k2"></td>
+                                <td id="calc_rout2"></td>
+                                <td id="calc_iout2"></td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td></td>
+                                <td></td>
+                                <td style="font-weight: bold;">0</td>
+                                <td></td>
+                                <td></td>
+                                <td id="calc_yi1"></td>
+                                <td></td>
+                                <td id="calc_rout3"></td>
+                                <td id="calc_iout3"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="converter-section">
+            <h3>PE Timing Diagram Reference</h3>
+            <div class="pe-table-wrap">
+                <table class="pe-table">
+                    <thead>
+                        <tr>
+                            <th>TIME</th>
+                            <th>R<sub>IN</sub></th>
+                            <th>I<sub>IN</sub></th>
+                            <th>S</th>
+                            <th>E</th>
+                            <th>F</th>
+                            <th>J</th>
+                            <th>K</th>
+                            <th>R<sub>OUT</sub></th>
+                            <th>I<sub>OUT</sub></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>0</td>
+                            <td>X<sub>R0</sub></td>
+                            <td>X<sub>I0</sub></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>X<sub>R1</sub></td>
+                            <td>X<sub>I1</sub></td>
+                            <td style="font-weight: bold;">0</td>
+                            <td style="text-align:left;">Y<sub>R0</sub> = X<sub>R0</sub> + X<sub>R1</sub></td>
+                            <td style="text-align:left;">Z<sub>R</sub> = X<sub>R0</sub> &minus; X<sub>R1</sub></td>
+                            <td></td>
+                            <td>Y<sub>R0</sub></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td></td>
+                            <td></td>
+                            <td style="font-weight: bold;">1</td>
+                            <td style="text-align:left;">Y<sub>I0</sub> = X<sub>I0</sub> + X<sub>I1</sub></td>
+                            <td style="text-align:left;">Z<sub>I</sub> = X<sub>I0</sub> &minus; X<sub>I1</sub></td>
+                            <td style="text-align:left; font-size:0.85em;">Y<sub>R1</sub> = Z<sub>R</sub> cos &alpha; &minus; Z<sub>I</sub> sin &alpha;</td>
+                            <td>Y<sub>R1</sub></td>
+                            <td>Y<sub>R0</sub></td>
+                            <td>Y<sub>I0</sub></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td></td>
+                            <td></td>
+                            <td style="font-weight: bold;">0</td>
+                            <td></td>
+                            <td></td>
+                            <td style="text-align:left; font-size:0.85em;">Y<sub>I1</sub> = Z<sub>R</sub> sin &alpha; + Z<sub>I</sub> cos &alpha;</td>
+                            <td></td>
+                            <td>Y<sub>R1</sub></td>
+                            <td>Y<sub>I1</sub></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 15px; font-size: 0.9em; color: #495057;">
+                    <strong>Note:</strong> PE (Processing Element) performs butterfly operation and rotation in a pipelined manner.
+                    S=0 loads data, S=1 performs computation. Results appear 2-3 cycles later.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculatePE() {
+            const xr0Str = document.getElementById('xr0').value.replace(/[^0-9a-fA-F]/g, '');
+            const xi0Str = document.getElementById('xi0').value.replace(/[^0-9a-fA-F]/g, '');
+            const xr1Str = document.getElementById('xr1').value.replace(/[^0-9a-fA-F]/g, '');
+            const xi1Str = document.getElementById('xi1').value.replace(/[^0-9a-fA-F]/g, '');
+            const cosStr = document.getElementById('cosAlpha').value.replace(/[^0-9a-fA-F]/g, '');
+            const sinStr = document.getElementById('sinAlpha').value.replace(/[^0-9a-fA-F]/g, '');
+
+            if (!xr0Str || !xi0Str || !xr1Str || !xi1Str || !cosStr || !sinStr) {
+                document.getElementById('peResult').style.display = 'none';
+                return;
+            }
+
+            function hexToSigned8(hexStr) {
+                let val = parseInt(hexStr, 16) & 0xFF;
+                if (val & 0x80) val = val - 256;
+                return val;
+            }
+
+            function unsigned8ToHex(val) {
+                return '0x' + (val & 0xFF).toString(16).toUpperCase().padStart(2, '0');
+            }
+
+            function signed9ToHex(val) {
+                if (val < 0) val = val + 512;
+                return '0x' + (val & 0x1FF).toString(16).toUpperCase().padStart(3, '0');
+            }
+
+            function signed8ToHex(val) {
+                if (val < 0) val = val + 256;
+                return '0x' + (val & 0xFF).toString(16).toUpperCase().padStart(2, '0');
+            }
+
+            const xr0 = hexToSigned8(xr0Str);
+            const xi0 = hexToSigned8(xi0Str);
+            const xr1 = hexToSigned8(xr1Str);
+            const xi1 = hexToSigned8(xi1Str);
+            const cosAlpha = hexToSigned8(cosStr);
+            const sinAlpha = hexToSigned8(sinStr);
+
+            let yr0_9bit = xr0 + xr1;
+            let yi0_9bit = xi0 + xi1;
+            let zr_9bit = xr0 - xr1;
+            let zi_9bit = xi0 - xi1;
+
+            const yr0_8bit = yr0_9bit & 0xFF;
+            const yi0_8bit = yi0_9bit & 0xFF;
+
+            const zr_cos = zr_9bit * cosAlpha;
+            const zi_sin = zi_9bit * sinAlpha;
+            const zr_sin = zr_9bit * sinAlpha;
+            const zi_cos = zi_9bit * cosAlpha;
+
+            let yr1_q214 = zr_cos - zi_sin;
+            let yi1_q214 = zr_sin + zi_cos;
+
+            let yr1 = (yr1_q214 >> 8) & 0xFF;
+            let yi1 = (yi1_q214 >> 8) & 0xFF;
+
+            document.getElementById('calc_r0').textContent = unsigned8ToHex(xr0);
+            document.getElementById('calc_i0').textContent = unsigned8ToHex(xi0);
+            document.getElementById('calc_r1').textContent = unsigned8ToHex(xr1);
+            document.getElementById('calc_i1').textContent = unsigned8ToHex(xi1);
+
+            document.getElementById('calc_yr0').textContent = unsigned8ToHex(yr0_8bit);
+            document.getElementById('calc_zr').textContent = signed9ToHex(zr_9bit);
+            document.getElementById('calc_yi0').textContent = unsigned8ToHex(yi0_8bit);
+            document.getElementById('calc_zi').textContent = signed9ToHex(zi_9bit);
+            document.getElementById('calc_yr1').textContent = signed8ToHex(yr1);
+            document.getElementById('calc_yi1').textContent = signed8ToHex(yi1);
+
+            document.getElementById('calc_k1').textContent = unsigned8ToHex(yr0_8bit);
+            document.getElementById('calc_k2').textContent = signed8ToHex(yr1);
+
+            document.getElementById('calc_rout2').textContent = unsigned8ToHex(yr0_8bit);
+            document.getElementById('calc_iout2').textContent = unsigned8ToHex(yi0_8bit);
+            document.getElementById('calc_rout3').textContent = signed8ToHex(yr1);
+            document.getElementById('calc_iout3').textContent = signed8ToHex(yi1);
+
+            document.getElementById('peResult').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

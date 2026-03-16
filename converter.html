@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fixed-Point Converter</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="converter.html" class="active">Fixed-Point Converter</a>
+        <a href="pe-calculator.html">PE Calculator (Hex)</a>
+        <a href="pe-real.html">PE Calculator (Real)</a>
+    </nav>
+
+    <div class="container">
+        <h1>Fixed-Point Converter</h1>
+        <p class="subtitle">Convert between fixed-point and floating-point representations</p>
+
+        <div class="format-config">
+            <h3>Q Format Configuration</h3>
+            <div class="config-row">
+                <div class="config-item">
+                    <label for="intBits">Integer Bits:</label>
+                    <input type="number" id="intBits" value="1" min="0" max="32" onchange="updateFormat()">
+                </div>
+                <div class="config-item">
+                    <label for="fracBits">Fractional Bits:</label>
+                    <input type="number" id="fracBits" value="7" min="0" max="32" onchange="updateFormat()">
+                </div>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="isSigned" checked onchange="updateFormat()">
+                <label for="isSigned" style="margin: 0;">Signed (Two's Complement)</label>
+            </div>
+            <div class="format-display" id="formatDisplay">Q1.7 (Signed, 8 bits total)</div>
+        </div>
+
+        <div class="converter-section">
+            <h3>Fixed-Point to Float</h3>
+            <div class="converter-grid">
+                <div class="input-group">
+                    <label for="fpBinary">Binary Value:</label>
+                    <input type="text" id="fpBinary" placeholder="e.g., 01111111" oninput="fixedToFloat()">
+                </div>
+                <div class="input-group">
+                    <label for="fpHex">Hex Value:</label>
+                    <input type="text" id="fpHex" placeholder="e.g., 0x7F" oninput="hexToFixed()">
+                </div>
+            </div>
+            <button onclick="fixedToFloat()">Convert to Float</button>
+            <div class="result" id="fpResult" style="display: none;">
+                <div class="result-label">Floating-Point Value:</div>
+                <div class="result-value" id="fpResultValue"></div>
+            </div>
+        </div>
+
+        <div class="converter-section">
+            <h3>Float to Fixed-Point</h3>
+            <div class="converter-grid">
+                <div class="input-group">
+                    <label for="floatValue">Decimal Value:</label>
+                    <input type="text" id="floatValue" placeholder="e.g., 0.992" oninput="floatToFixed()">
+                </div>
+            </div>
+            <button onclick="floatToFixed()">Convert to Fixed-Point</button>
+            <div class="result" id="floatResult" style="display: none;">
+                <div class="result-label">Binary:</div>
+                <div class="result-value" id="floatResultBinary"></div>
+                <div class="result-label" style="margin-top: 10px;">Hexadecimal:</div>
+                <div class="result-value" id="floatResultHex"></div>
+                <div class="result-label" style="margin-top: 10px;">Decimal (Integer):</div>
+                <div class="result-value" id="floatResultDec"></div>
+            </div>
+        </div>
+
+        <div class="info">
+            <strong>Q Format Notation:</strong>
+            Q<em>m</em>.<em>n</em> format uses <em>m</em> bits for integer part and <em>n</em> bits for fractional part.
+            For signed numbers, 1 bit is used for sign. Total bits = m + n (signed) or m + n + 1 (with sign bit).
+            <br><br>
+            <strong>Example:</strong> Q1.7 (signed) uses 1 bit for integer, 7 bits for fraction (8 bits total).
+            Range: -2.0 to ~1.992. Resolution: 1/128 = 0.0078125
+        </div>
+    </div>
+
+    <script>
+        function updateFormat() {
+            const intBits = parseInt(document.getElementById('intBits').value);
+            const fracBits = parseInt(document.getElementById('fracBits').value);
+            const isSigned = document.getElementById('isSigned').checked;
+
+            const totalBits = intBits + fracBits + (isSigned ? 1 : 0);
+            const signStr = isSigned ? 'Signed' : 'Unsigned';
+
+            document.getElementById('formatDisplay').textContent =
+                `Q${intBits}.${fracBits} (${signStr}, ${totalBits} bits total)`;
+        }
+
+        function fixedToFloat() {
+            const intBits = parseInt(document.getElementById('intBits').value);
+            const fracBits = parseInt(document.getElementById('fracBits').value);
+            const isSigned = document.getElementById('isSigned').checked;
+            const binaryStr = document.getElementById('fpBinary').value.replace(/[^01]/g, '');
+
+            if (!binaryStr) {
+                document.getElementById('fpResult').style.display = 'none';
+                return;
+            }
+
+            const totalBits = intBits + fracBits + (isSigned ? 1 : 0);
+            const paddedBinary = binaryStr.padStart(totalBits, '0').slice(-totalBits);
+            document.getElementById('fpBinary').value = paddedBinary;
+
+            let value = 0;
+            const isNegative = isSigned && paddedBinary[0] === '1';
+
+            if (isSigned && isNegative) {
+                let inverted = '';
+                for (let i = 0; i < paddedBinary.length; i++) {
+                    inverted += paddedBinary[i] === '0' ? '1' : '0';
+                }
+                value = -(parseInt(inverted, 2) + 1);
+            } else {
+                value = parseInt(paddedBinary, 2);
+            }
+
+            const floatValue = value / Math.pow(2, fracBits);
+
+            const hexValue = parseInt(paddedBinary, 2);
+            document.getElementById('fpHex').value = '0x' + hexValue.toString(16).toUpperCase().padStart(Math.ceil(totalBits / 4), '0');
+
+            document.getElementById('fpResultValue').textContent = floatValue.toFixed(10);
+            document.getElementById('fpResult').style.display = 'block';
+        }
+
+        function hexToFixed() {
+            const intBits = parseInt(document.getElementById('intBits').value);
+            const fracBits = parseInt(document.getElementById('fracBits').value);
+            const isSigned = document.getElementById('isSigned').checked;
+            const hexStr = document.getElementById('fpHex').value.replace(/[^0-9a-fA-F]/g, '');
+
+            if (!hexStr) {
+                document.getElementById('fpResult').style.display = 'none';
+                return;
+            }
+
+            const totalBits = intBits + fracBits + (isSigned ? 1 : 0);
+            const decValue = parseInt(hexStr, 16);
+            const binaryStr = decValue.toString(2).padStart(totalBits, '0').slice(-totalBits);
+
+            document.getElementById('fpBinary').value = binaryStr;
+            fixedToFloat();
+        }
+
+        function floatToFixed() {
+            const intBits = parseInt(document.getElementById('intBits').value);
+            const fracBits = parseInt(document.getElementById('fracBits').value);
+            const isSigned = document.getElementById('isSigned').checked;
+            const floatStr = document.getElementById('floatValue').value;
+
+            if (!floatStr) {
+                document.getElementById('floatResult').style.display = 'none';
+                return;
+            }
+
+            const floatValue = parseFloat(floatStr);
+            const totalBits = intBits + fracBits + (isSigned ? 1 : 0);
+
+            const maxValue = isSigned ?
+                (Math.pow(2, intBits + fracBits) - 1) / Math.pow(2, fracBits) :
+                (Math.pow(2, intBits + fracBits + 1) - 1) / Math.pow(2, fracBits);
+            const minValue = isSigned ? -Math.pow(2, intBits + fracBits) / Math.pow(2, fracBits) : 0;
+
+            if (floatValue > maxValue || floatValue < minValue) {
+                alert(`Value out of range! Valid range: ${minValue} to ${maxValue}`);
+                return;
+            }
+
+            let fixedValue = Math.round(floatValue * Math.pow(2, fracBits));
+
+            if (isSigned && fixedValue < 0) {
+                fixedValue = Math.pow(2, totalBits) + fixedValue;
+            }
+
+            const binaryStr = fixedValue.toString(2).padStart(totalBits, '0');
+            const hexStr = '0x' + fixedValue.toString(16).toUpperCase().padStart(Math.ceil(totalBits / 4), '0');
+
+            document.getElementById('floatResultBinary').textContent = binaryStr;
+            document.getElementById('floatResultHex').textContent = hexStr;
+            document.getElementById('floatResultDec').textContent = fixedValue;
+            document.getElementById('floatResult').style.display = 'block';
+        }
+
+        updateFormat();
+    </script>
+</body>
+</html>

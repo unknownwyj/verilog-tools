@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verilog Tools</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="active">Home</a>
+        <a href="converter.html">Fixed-Point Converter</a>
+        <a href="pe-calculator.html">PE Calculator (Hex)</a>
+        <a href="pe-real.html">PE Calculator (Real)</a>
+    </nav>
+
+    <div class="container">
+        <h1>Verilog Tools</h1>
+        <p class="subtitle">A collection of tools for Verilog / fixed-point development</p>
+
+        <div class="tools-grid">
+            <a href="converter.html" class="tool-card">
+                <h3>Fixed-Point Converter</h3>
+                <p>Convert between fixed-point binary/hex and floating-point decimal values. Configurable Q format with signed/unsigned support.</p>
+            </a>
+
+            <a href="pe-calculator.html" class="tool-card">
+                <h3>PE Calculator (Hex)</h3>
+                <p>Compute butterfly and twiddle-factor rotation outputs for an FFT Processing Element using hex Q1.7 inputs. Includes full timing diagram.</p>
+            </a>
+
+            <a href="pe-real.html" class="tool-card">
+                <h3>PE Calculator (Real)</h3>
+                <p>Same PE butterfly and rotation math using real (decimal) numbers. Useful for verifying expected results before fixed-point conversion.</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
